@@ -1,0 +1,7 @@
+const CONFIG={
+    title:"سجوکونگولابی",
+    durationMinutes:100,
+    maxExits:0,
+    autoFinishOnMaxExits:true,
+    allowResumeAfterRefresh:true
+};

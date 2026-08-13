@@ -1,5 +1,450 @@
-<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>سامانه آزمون آنلاین</title><link rel="stylesheet" href="style.css"></head><body>
-<header><b>سامانه آزمون آنلاین</b><span id="timer">--:--</span></header><main>
-<section id="start" class="card"><h1 id="title"></h1><p id="info"></p><input id="name" placeholder="نام و نام خانوادگی"><input id="code" placeholder="کد داوطلب"><button onclick="startExam()">شروع آزمون</button><p>ترک تب/صفحه طبق تنظیمات ثبت می‌شود.</p></section>
-<section id="exam" class="hidden"><div class="layout"><aside class="card"><h3>سؤالات</h3><div id="nav"></div><button class="danger" onclick="finish(false)">پایان آزمون</button></aside><article class="card"><div id="meta"></div><div id="question"></div><div id="options"></div><div class="actions"><button onclick="prev()">قبلی</button><button onclick="next()">بعدی</button></div></article></div></section>
-<section id="result" class="card hidden"><h2>نتیجه</h2><div id="summary"></div></section></main><script src="config.js"></script><script src="questions.js"></script><script src="app.js"></script></body></html>
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>سامانه آزمون آنلاین</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Tahoma, Arial, sans-serif;
+            min-height: 100vh;
+            background:
+                radial-gradient(circle at top right, #4f46e5 0%, transparent 35%),
+                radial-gradient(circle at bottom left, #0891b2 0%, transparent 35%),
+                #0f172a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: #172033;
+        }
+
+        .page {
+            width: 100%;
+            max-width: 1050px;
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            background: rgba(255,255,255,.96);
+            border-radius: 28px;
+            overflow: hidden;
+            box-shadow: 0 30px 80px rgba(0,0,0,.35);
+        }
+
+        /* بخش معرفی */
+
+        .intro {
+            padding: 55px;
+            background: linear-gradient(145deg,#1e293b,#312e81);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .logo {
+            width: 70px;
+            height: 70px;
+            border-radius: 20px;
+            background: rgba(255,255,255,.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            margin-bottom: 25px;
+            backdrop-filter: blur(10px);
+        }
+
+        .intro h1 {
+            font-size: 38px;
+            line-height: 1.5;
+            margin-bottom: 15px;
+        }
+
+        .intro p {
+            color: #cbd5e1;
+            line-height: 2;
+            font-size: 16px;
+        }
+
+        .features {
+            margin-top: 35px;
+            display: grid;
+            gap: 14px;
+        }
+
+        .feature {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #e2e8f0;
+        }
+
+        .feature-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: rgba(255,255,255,.12);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* فرم */
+
+        .login-area {
+            padding: 55px 45px;
+            display: flex;
+            align-items: center;
+        }
+
+        .login-box {
+            width: 100%;
+        }
+
+        .login-box h2 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #64748b;
+            margin-bottom: 30px;
+            line-height: 1.8;
+            font-size: 14px;
+        }
+
+        .field {
+            margin-bottom: 20px;
+        }
+
+        .field label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .field input {
+            width: 100%;
+            height: 54px;
+            border: 2px solid #e2e8f0;
+            border-radius: 13px;
+            padding: 0 16px;
+            font-size: 16px;
+            outline: none;
+            transition: .2s;
+            background: #f8fafc;
+        }
+
+        .field input:focus {
+            border-color: #4f46e5;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(79,70,229,.1);
+        }
+
+        .start-btn {
+            width: 100%;
+            height: 56px;
+            border: none;
+            border-radius: 13px;
+            background: linear-gradient(135deg,#4f46e5,#7c3aed);
+            color: white;
+            font-size: 17px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: .2s;
+            box-shadow: 0 10px 25px rgba(79,70,229,.25);
+        }
+
+        .start-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px rgba(79,70,229,.35);
+        }
+
+        .start-btn:active {
+            transform: translateY(0);
+        }
+
+        .info {
+            margin-top: 20px;
+            padding: 13px 15px;
+            background: #f8fafc;
+            border-radius: 11px;
+            color: #64748b;
+            font-size: 12px;
+            line-height: 1.8;
+            text-align: center;
+        }
+
+        .error {
+            display: none;
+            background: #fef2f2;
+            color: #b91c1c;
+            border: 1px solid #fecaca;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 18px;
+            font-size: 13px;
+        }
+
+        @media(max-width:800px) {
+
+            body {
+                padding: 12px;
+                align-items: flex-start;
+            }
+
+            .page {
+                grid-template-columns: 1fr;
+                margin-top: 20px;
+                border-radius: 22px;
+            }
+
+            .intro {
+                padding: 30px 25px;
+                text-align: center;
+            }
+
+            .logo {
+                margin: 0 auto 18px;
+            }
+
+            .intro h1 {
+                font-size: 28px;
+            }
+
+            .intro p {
+                font-size: 14px;
+            }
+
+            .features {
+                text-align: right;
+                margin-top: 25px;
+            }
+
+            .login-area {
+                padding: 30px 25px 35px;
+            }
+
+            .login-box h2 {
+                font-size: 24px;
+            }
+        }
+
+        @media(max-width:420px) {
+
+            .intro {
+                padding: 25px 20px;
+            }
+
+            .intro h1 {
+                font-size: 24px;
+            }
+
+            .login-area {
+                padding: 25px 18px 30px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="page">
+
+    <!-- معرفی -->
+    <section class="intro">
+
+        <div class="logo">
+            📝
+        </div>
+
+        <h1>
+            سامانه آزمون آنلاین
+        </h1>
+
+        <p>
+            برای ورود به آزمون، مشخصات خود را وارد کنید
+            و سپس آزمون را آغاز کنید.
+        </p>
+
+        <div class="features">
+
+            <div class="feature">
+                <div class="feature-icon">⏱️</div>
+                <span>آزمون دارای زمان‌بندی مشخص است</span>
+            </div>
+
+            <div class="feature">
+                <div class="feature-icon">📊</div>
+                <span>محاسبه خودکار نتیجه آزمون</span>
+            </div>
+
+            <div class="feature">
+                <div class="feature-icon">📱</div>
+                <span>قابل استفاده با موبایل و کامپیوتر</span>
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ورود -->
+    <section class="login-area">
+
+        <div class="login-box">
+
+            <h2>
+                ورود به آزمون
+            </h2>
+
+            <p class="subtitle">
+                لطفاً نام و کد داوطلبی خود را با دقت وارد کنید.
+            </p>
+
+
+            <div
+                id="errorBox"
+                class="error"
+            ></div>
+
+
+            <div class="field">
+
+                <label for="candidateName">
+                    نام و نام خانوادگی
+                </label>
+
+                <input
+                    id="candidateName"
+                    type="text"
+                    placeholder="مثلاً علی احمدی"
+                    autocomplete="name"
+                >
+
+            </div>
+
+
+            <div class="field">
+
+                <label for="candidateCode">
+                    کد داوطلبی
+                </label>
+
+                <input
+                    id="candidateCode"
+                    type="text"
+                    placeholder="مثلاً 10025"
+                    autocomplete="off"
+                >
+
+            </div>
+
+
+            <button
+                id="startBtn"
+                class="start-btn"
+                onclick="startExam()"
+            >
+                شروع آزمون
+            </button>
+
+
+            <div class="info">
+                ⚠️ قبل از شروع، از اتصال اینترنت خود مطمئن شوید
+                و تا پایان آزمون صفحه را نبندید.
+            </div>
+
+        </div>
+
+    </section>
+
+</div>
+
+
+<script>
+
+function showError(message) {
+
+    const box =
+        document.getElementById("errorBox");
+
+    box.textContent = message;
+
+    box.style.display = "block";
+}
+
+
+function startExam() {
+
+    const name =
+        document
+        .getElementById("candidateName")
+        .value
+        .trim();
+
+    const code =
+        document
+        .getElementById("candidateCode")
+        .value
+        .trim();
+
+
+    if (!name) {
+
+        showError(
+            "لطفاً نام و نام خانوادگی را وارد کنید."
+        );
+
+        return;
+    }
+
+
+    if (!code) {
+
+        showError(
+            "لطفاً کد داوطلبی را وارد کنید."
+        );
+
+        return;
+    }
+
+
+    /*
+       اطلاعات داوطلب
+       برای app.js
+    */
+
+    localStorage.setItem(
+        "candidateName",
+        name
+    );
+
+    localStorage.setItem(
+        "candidateCode",
+        code
+    );
+
+
+    /*
+       اگر app.js فعلی تو
+       از این کلید‌ها استفاده کند،
+       اطلاعات آماده است.
+    */
+
+    window.location.href = "exam.html";
+}
+
+</script>
+
+</body>
+</html>
